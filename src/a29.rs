@@ -35,4 +35,15 @@ impl Priority for Guest {
     }
 }
 
-fn main() {}
+// We need to add std::fmt::Debug to ensure that thing using debug token must also implement it 
+fn priority<T>(thing:T) 
+where
+    T : Priority+ std::fmt::Debug
+{
+    println!("Priority for {:?} is {:?}",thing,thing.get_priority());
+}
+
+fn main() {
+    priority(Guest {});
+    priority(ImportantGuest {});
+}

@@ -11,7 +11,16 @@
 
 use thiserror::Error;
 
-enum ProgramError {}
+
+// From keyword can be used to convert one erro to another type
+#[derive(Debug,Error)]
+enum ProgramError {
+    #[error("Menu Error")]
+    Menu(#[from] MenuError),
+
+    #[error("Math Error")]
+    Math(#[from] MathError),
+}
 
 #[derive(Debug, Error)]
 enum MenuError {
