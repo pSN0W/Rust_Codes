@@ -16,4 +16,74 @@
 // Notes:
 // * Optionally use generics for each state
 
-fn main() {}
+
+#[derive(Debug)]
+struct Luggage<T> {
+    id: String,
+    state: T
+}
+
+impl<T> Luggage<T> {
+    fn transition<U> (self,nextState:U) -> Luggage<U> {
+        Luggage {
+            id: self.id,
+            state: nextState
+        }
+    }
+}
+
+struct Packed;
+
+impl Luggage<Packed> {
+    fn new(id:&str) -> Self {
+        Self {
+            id:id.to_string(),
+            state: Packed,
+        }
+    }
+
+    fn checkin(self) -> Luggage<CheckIn> {
+        self.transition(CheckIn)
+    }
+}
+
+struct CheckIn;
+impl Luggage<CheckIn> {
+    fn load(self) -> Luggage<OnLoading> {
+        self.transition(OnLoading)
+    }
+}
+
+struct OnLoading;
+impl Luggage<OnLoading> {
+    fn drop(self) -> Luggage<Offloading>{
+        self.transition(Offloading)
+    }
+}
+
+struct Offloading;
+impl Luggage<Offloading> {
+    fn wait(self) -> Luggage<AwaitingPickup> {
+        self.transition(AwaitingPickup)
+    }
+}
+
+struct AwaitingPickup;
+impl Luggage<AwaitingPickup> {
+    fn pickup(self) -> Luggage<EndCustody> {
+        self.transition(EndCustody)
+    }
+}
+
+struct EndCustody;
+impl Luggage<EndCustody> {
+    fn removeLuggage(self) {
+        println!("Luggage succesfully delivered");
+    }
+}
+
+
+fn main() {
+    let my_luggage = Luggage::<Packed>::new("ax4321");
+    my_luggage.checkin().load().drop().wait().pickup().removeLuggage();
+}
