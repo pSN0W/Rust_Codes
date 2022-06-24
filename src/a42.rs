@@ -18,4 +18,47 @@
 // * Use the .next() method to advance the iterator to confirm it works correctly
 // * Only the Iterator trait needs to be implemented for this activity
 
-fn main() {}
+struct ScoringSystem{
+    current_score : i32,
+    powerup_point : i32,
+}
+
+impl ScoringSystem {
+    fn new() -> Self {
+        Self {
+            current_score : 1,
+            powerup_point : 1,
+        }
+    }
+
+    fn powerup(&mut self){
+        self.powerup_point = self.powerup_point+1;
+    }
+}
+
+impl Iterator for ScoringSystem {
+    type Item = i32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.current_score += self.powerup_point;
+        Some(self.current_score)
+    }
+}
+
+fn main() {
+    let mut score = ScoringSystem::new();
+    println!("{:?}",score.next());
+    println!("{:?}",score.next());
+    println!("{:?}",score.next());
+    println!("{:?}",score.next());
+    score.powerup();
+    println!("{:?}",score.next());
+    println!("{:?}",score.next());
+    println!("{:?}",score.next());
+    println!("{:?}",score.next());
+    score.powerup();
+    println!("{:?}",score.next());
+    println!("{:?}",score.next());
+    println!("{:?}",score.next());
+    println!("{:?}",score.next());
+}
