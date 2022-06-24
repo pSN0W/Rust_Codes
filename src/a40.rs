@@ -21,8 +21,78 @@
 // * Test your program by changing the vehicle status from both a storefront
 //   and from corporate
 
-struct Corporate;
+use std::cell::RefCell;
+use std::rc::Rc;
 
-struct StoreFront;
+#[derive(Debug)]
+enum Vehicle{
+    Car,
+    Truck,
+}
 
-fn main() {}
+#[derive(Debug, Hash, PartialOrd, PartialEq)]
+enum Status{
+    Available,
+    Unavailable,
+    Maintenance,
+    Rented,
+}
+
+#[derive(Debug)]
+struct Rental{
+    vehicle : Vehicle,
+    status : Status,
+    vin : String,
+}
+
+#[derive(Debug)]
+struct Corporate{
+    rental : Rc<RefCell<Vec<Rental>>>
+}
+
+#[derive(Debug)]
+struct StoreFront{
+    rental : Rc<RefCell<Vec<Rental>>>
+}
+
+fn main() {
+    let vehicles = vec![
+        Rental{
+            vehicle : Vehicle::Car,
+            status : Status::Maintenance,
+            vin : "1".to_owned()
+        },
+        Rental{
+            vehicle : Vehicle::Truck,
+            status : Status::Available,
+            vin : "2".to_owned()
+        },
+    ];
+    println!("Initially -> ");
+    dbg!(&vehicles);
+    let vehicles = Rc::new(RefCell::new(vehicles));
+    let corporate = Corporate{rental:Rc::clone(&vehicles)};
+    let store_front = StoreFront{rental:Rc::clone(&vehicles)};
+    {
+        let mut rental = store_front.rental.borrow_mut();
+        if let Some(vehicle) = rental.get_mut(1) {
+            println!("Vehicle {} rented",vehicle.vin);
+            vehicle.status = Status::Rented;
+        }
+    }
+    {
+        let ren = vehicles.borrow();
+        dbg!(&ren);
+    }
+    {
+        let mut rental = corporate.rental.borrow_mut();
+        if let Some(vehicle) = rental.get_mut(0) {
+            println!("Vehicle {} is available",vehicle.vin);
+            vehicle.status = Status::Available;
+        }
+    }
+    {
+        let ren = vehicles.borrow();
+        dbg!(&ren);
+    }
+}

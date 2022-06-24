@@ -23,23 +23,78 @@
 
 use crossbeam_channel::{unbounded, Receiver};
 use std::thread::{self, JoinHandle};
+use colored::*;
 
 enum LightMsg {
     // Add additional variants needed to complete the exercise
     ChangeColor(u8, u8, u8),
     Disconnect,
+    On,
+    Off,
 }
 
+#[derive(Debug)]
 enum LightStatus {
     Off,
     On,
 }
 
+// The function gets reciever as an argument which recieve data of type LightMsg
+// The function returns a handler to join the thread along with data as LightStatus
 fn spawn_light_thread(receiver: Receiver<LightMsg>) -> JoinHandle<LightStatus> {
-    // Add code here to spawn a thread to control the light bulb
+    // creating a new thread 
+    // The return value of the closure will be returned with the Join =Handler
+    thread::spawn(move || {
+        let mut status = LightStatus::Off;
+        loop {
+            match receiver.recv() {
+                Ok(msg) => match msg {
+                    LightMsg::On => {
+                        println!("Lights turned on");
+                        status = LightStatus::On;
+                    },
+                    LightMsg::Off => {
+                        println!("Lights turned off");
+                        status = LightStatus::Off;
+                    },
+                    LightMsg::ChangeColor(r,g,b) => {
+                        println!("Lights changed to : {}","      ".on_truecolor(r,g,b));
+                    },
+                    LightMsg::Disconnect => {
+                        println!("Disconnecting.....");
+                        status = LightStatus::Off;
+                        break;
+                    }
+                }
+                Err(e) => {
+                    status = LightStatus::Off;
+                    println!("Worker Disconnected");
+                    break;
+                }
+            }
+        }
+        status
+    })
 }
 
-fn main() {}
+fn main() {
+    // Creating a channel 
+    let (s,r) = unbounded();
+
+    // create a new thread with the reciever
+    let reciever_handler = spawn_light_thread(r);
+    s.send(LightMsg::On);
+    s.send(LightMsg::ChangeColor(255,0,0));
+    s.send(LightMsg::ChangeColor(0,255,0));
+    s.send(LightMsg::ChangeColor(0,0,255));
+    s.send(LightMsg::Off);
+    s.send(LightMsg::Disconnect);
+
+    // The message send by the reciever
+    let status = reciever_handler.join();
+
+    println!("{:?}",status);
+}
 
 #[cfg(test)]
 mod test {
